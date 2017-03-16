@@ -1,15 +1,20 @@
 package com.stephen.wikilocation.Activity;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.stephen.wikilocation.Model.Data;
 import com.stephen.wikilocation.R;
+import com.stephen.wikilocation.REST.ServiceGenerator;
+import com.stephen.wikilocation.REST.WikipediaClient;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -19,6 +24,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //create the API client
+        WikipediaClient client = ServiceGenerator.createService(WikipediaClient.class);
+        Call<Data> call = client.getArticlesNearby("query","geosearch",10000,"37.786971|-122.399677","json");
+
+        call.enqueue(new Callback<Data>() {
+            @Override
+            public void onResponse(Call<Data> call, Response<Data> response) {
+                Data reply = response.body();
+                Log.d("reply", "onResponse: ");
+            }
+
+            @Override
+            public void onFailure(Call<Data> call, Throwable t) {
+                Log.d("fail", "onResponse: ");
+            }
+        });
     }
 
     @Override

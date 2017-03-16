@@ -5,36 +5,57 @@ package com.stephen.wikilocation.Model;
  */
 public class Article {
 
-    String title;
-    double lat, lon;
-    int pageid;
-    int dist;
 
-    public Article(String title, double lat, double lon, int pageid, int distance){
-        this.title = title;
-        this.lat = lat;
-        this.lon = lon;
+    private Integer pageid;
+
+    private String title;
+
+    private Double lat;
+
+    private Double lon;
+
+    private Double dist;
+
+    public Integer getPageid() {
+        return pageid;
+    }
+
+    public void setPageid(Integer pageid) {
         this.pageid = pageid;
-        this.dist = distance;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public double getLat() {
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Double getLat() {
         return lat;
     }
 
-    public double getLon() {
+    public void setLat(Double lat) {
+        this.lat = lat;
+    }
+
+    public Double getLon() {
         return lon;
     }
 
-    public int getPageid() {
-        return pageid;
+    public void setLon(Double lon) {
+        this.lon = lon;
     }
 
-    public int getDist() {
+    public Double getDist() {
         return dist;
     }
+
+    public void setDist(Double dist) {
+        this.dist = dist;
+    }
+
+
+
 }

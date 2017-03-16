@@ -1,21 +1,21 @@
 package com.stephen.wikilocation.REST;
 
-import com.stephen.wikilocation.Model.Article;
-
-import java.util.List;
+import com.stephen.wikilocation.Model.Data;
 
 import retrofit2.Call;
 import retrofit2.http.*;
 
 
 public interface WikipediaClient {
-
-   @GET("")
-   Call<List<Article>> getArticlesNearby(
+   @Headers("User-Agent: WikiLocation/1.1")
+   @GET("w/api.php")
+   Call<Data> getArticlesNearby(
            @Query("action") String action,
            @Query("list") String geoSearch,
            @Query("gsradius") int radius,
-           @Query("gscoord") String cordinates
+           @Query("gscoord") String coordinates,
+           @Query("format") String format
    );
+
 }
 
