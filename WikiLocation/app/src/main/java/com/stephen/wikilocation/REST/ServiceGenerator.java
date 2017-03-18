@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Stephen on 3/14/2017.
  */
 public class ServiceGenerator {
-    private static final String BASE_URL = "https://en.wikipedia.org/";
+    private static final String BASE_URL = "https://en.wikipedia.org/w/api.php/";
 
     //Attach a logging interceptor to log http requests and responses
     private static HttpLoggingInterceptor logging = new HttpLoggingInterceptor()
