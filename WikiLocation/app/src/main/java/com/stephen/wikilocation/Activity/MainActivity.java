@@ -67,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "Suspended connection to GoogleApiClient");
                     }
                 })
-                .build(
+                .build();
+        
 
     }
 
