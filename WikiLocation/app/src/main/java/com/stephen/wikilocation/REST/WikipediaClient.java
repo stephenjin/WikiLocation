@@ -8,7 +8,7 @@ import retrofit2.http.*;
 
 public interface WikipediaClient {
    @Headers("User-Agent: WikiLocation/1.1")
-   @GET("./git")
+   @GET("./")
    Call<Data> getArticlesNearby(
            @Query("action") String action,
            @Query("list") String geoSearch,

@@ -11,10 +11,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -25,6 +30,7 @@ import com.stephen.wikilocation.Model.Data;
 import com.stephen.wikilocation.R;
 import com.stephen.wikilocation.REST.ServiceGenerator;
 import com.stephen.wikilocation.REST.WikipediaClient;
+import com.stephen.wikilocation.View.ArticleAdapter;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
         GoogleApiClient googleApiClient = null;
         private WikipediaClient client;
         private Data reply = null;
+        private ArticleAdapter adapter;
+        private RecyclerView mRecyclerView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +77,18 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .build();
-        
+
+
+        mRecyclerView = (RecyclerView)findViewById(R.id.article_recyclerView);
+
+        //using a linear layout manager
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(layoutManager);
+
 
     }
+
+
 
     @Override
     protected void onStart() {
@@ -120,6 +138,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
                 reply = response.body();
+
+                //specifying adapter
+                adapter = new ArticleAdapter(reply.getQuery().getArticles());
+                mRecyclerView.setAdapter(adapter);
                 Log.d(TAG, "onResponse: ");
             }
 
@@ -133,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
     private void startLocationMonitoring(){
         try{
             LocationRequest locationRequest = LocationRequest.create()
-                    .setInterval(10000)
-                    .setInterval(5000)
+                    .setInterval(600000)
+                    .setFastestInterval(60000)
                     .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, new com.google.android.gms.location.LocationListener() {
