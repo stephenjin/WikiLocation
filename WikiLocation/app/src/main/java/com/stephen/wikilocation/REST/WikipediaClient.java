@@ -17,5 +17,15 @@ public interface WikipediaClient {
            @Query("format") String format
    );
 
+   @Headers("User-Agent: WikiLocation/1.1")
+   @GET("./")
+   Call<Data> getThumbnailURL(
+           @Query("action") String action,
+           @Query("prop") String pageImages,
+           @Query("piprop") String imageType,
+           @Query("format") String format,
+           @Query("titles") String title
+   );
+
 }
 
