@@ -16,6 +16,8 @@ public class Article {
 
     private Double dist;
 
+    private Thumbnail thumbnail;
+
     public Integer getPageid() {
         return pageid;
     }
@@ -56,6 +58,11 @@ public class Article {
         this.dist = dist;
     }
 
+    public Thumbnail getThumbnail() {
+        return thumbnail;
+    }
 
-
+    public void setThumbnail(Thumbnail thumbnail) {
+        this.thumbnail = thumbnail;
+    }
 }

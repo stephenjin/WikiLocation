@@ -8,7 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
 import com.stephen.wikilocation.Model.Article;
+import com.stephen.wikilocation.Model.Thumbnail;
 import com.stephen.wikilocation.R;
 
 import java.util.Collections;
@@ -38,7 +40,15 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
     @Override
     public void onBindViewHolder(ArticleViewHolder holder, int position) {
         Article current = articles.get(position);
+        Thumbnail thumbnail = current.getThumbnail();
         holder.title.setText(current.getTitle());
+
+        if(thumbnail != null) {
+            Picasso.with(holder.icon.getContext())
+                    .load(thumbnail.getSource())
+                    .into(holder.icon);
+        }
+
 
     }
 

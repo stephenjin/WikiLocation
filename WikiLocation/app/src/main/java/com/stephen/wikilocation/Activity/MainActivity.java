@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -26,11 +27,19 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.stephen.wikilocation.Model.Article;
 import com.stephen.wikilocation.Model.Data;
+import com.stephen.wikilocation.Model.Thumbnail;
 import com.stephen.wikilocation.R;
 import com.stephen.wikilocation.REST.ServiceGenerator;
 import com.stephen.wikilocation.REST.WikipediaClient;
 import com.stephen.wikilocation.View.ArticleAdapter;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -38,13 +47,12 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-        private static final String TAG = "MainActivity";
-        GoogleApiClient googleApiClient = null;
-        private WikipediaClient client;
-        private Data reply = null;
-        private ArticleAdapter adapter;
-        private RecyclerView mRecyclerView;
-
+    private static final String TAG = "MainActivity";
+    GoogleApiClient googleApiClient = null;
+    private WikipediaClient client;
+    private Data reply = null;
+    private ArticleAdapter adapter;
+    private RecyclerView mRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onConnected(@Nullable Bundle bundle) {
                         Log.d(TAG, "Connected to GoogleApiClient");
+                        updateLocation();
                         startLocationMonitoring();
                     }
 
@@ -79,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
 
-        mRecyclerView = (RecyclerView)findViewById(R.id.article_recyclerView);
+        mRecyclerView = (RecyclerView) findViewById(R.id.article_recyclerView);
 
         //using a linear layout manager
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
@@ -87,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-
 
 
     @Override
@@ -101,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         int response = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this);
-        if(response != ConnectionResult.SUCCESS){
+        if (response != ConnectionResult.SUCCESS) {
             //Google Play Services not available - show dialog to ask user to download it
             GoogleApiAvailability.getInstance().getErrorDialog(this, response, 1).show();
         }
@@ -130,18 +138,17 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void sendApiRequest(String coordinates){
+    private void sendApiRequest(String coordinates) {
 
-        Call<Data> call = client.getArticlesNearby("query","geosearch",10000,coordinates,"json");
-
+        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, "json");
         call.enqueue(new Callback<Data>() {
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
                 reply = response.body();
+                List<Article> articles = reply.getQuery().getArticles();
 
-                //specifying adapter
-                adapter = new ArticleAdapter(reply.getQuery().getArticles());
-                mRecyclerView.setAdapter(adapter);
+                //get thumbnails and add then to the articles
+                new ThumbnailTask().execute(articles);
                 Log.d(TAG, "onResponse: ");
             }
 
@@ -151,6 +158,46 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void requestThumbnail(Article article, final int i) {
+        String title = article.getTitle();
+        Call<Data> call = client.getThumbnailURL("query", "pageimages", "thumbnail", "json", title);
+
+        try {
+            Data response = call.execute().body();
+            Map<String, Article> map = response.getQuery().getPageid();
+            //get first value from the map
+            Thumbnail thumbnail = map.entrySet().iterator().next().getValue().getThumbnail();
+            reply.getQuery().getArticles().get(i).setThumbnail(thumbnail);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void updateLocation() {
+        //need to request permission at runtime for android sdk 23 and above
+        if (Build.VERSION.SDK_INT >= 23){
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.INTERNET}, 10);
+            return;
+             }
+        }
+        Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if (location != null){
+            double lat = location.getLatitude();
+            double lon = location.getLongitude();
+            String coord = lat+"|"+lon;
+            sendApiRequest(coord);
+        }
+
+    }
+
 
     private void startLocationMonitoring(){
         try{
@@ -162,14 +209,37 @@ public class MainActivity extends AppCompatActivity {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, new com.google.android.gms.location.LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
-                    double lat = location.getLatitude();
-                    double lon = location.getLongitude();
-                    String coord = lat+"|"+lon;
-                    sendApiRequest(coord);
+
                 }
             });
         }catch(SecurityException e){
             Log.d(TAG, "SecurityException: " + e.getMessage());
         }
     }
+
+
+        class ThumbnailTask extends AsyncTask<List<Article>, Void, Void> {
+
+
+            @Override
+            protected Void doInBackground(List<Article>... params) {
+                List<Article> articles= params[0];
+
+                for (int i = 0; i < articles.size(); i++) {
+                    requestThumbnail(articles.get(i), i);
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+
+                //specify adapter for RecyclerView
+                adapter = new ArticleAdapter(reply.getQuery().getArticles());
+                mRecyclerView.setAdapter(adapter);
+            }
+        }
+
 }
