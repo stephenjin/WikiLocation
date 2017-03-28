@@ -161,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestThumbnail(Article article, final int i) {
         String title = article.getTitle();
-        Call<Data> call = client.getThumbnailURL("query", "pageimages", "thumbnail", "json", title);
+        Call<Data> call = client.getThumbnailURL("query", "pageimages", "thumbnail", "json", 100, title);
 
         try {
             Data response = call.execute().body();

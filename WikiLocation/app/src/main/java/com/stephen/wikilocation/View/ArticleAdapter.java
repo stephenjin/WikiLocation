@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.gms.vision.text.Text;
 import com.squareup.picasso.Picasso;
 import com.stephen.wikilocation.Model.Article;
 import com.stephen.wikilocation.Model.Thumbnail;
@@ -42,6 +43,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
         Article current = articles.get(position);
         Thumbnail thumbnail = current.getThumbnail();
         holder.title.setText(current.getTitle());
+        holder.distance.setText(current.getDist()+" m");
+
 
         if(thumbnail != null) {
             Picasso.with(holder.icon.getContext())
@@ -60,12 +63,14 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
     class ArticleViewHolder extends RecyclerView.ViewHolder{
 
         public TextView title;
+        public TextView distance;
         public ImageView icon;
         public ArticleViewHolder(View itemView) {
             super(itemView);
 
             title = (TextView) itemView.findViewById(R.id.articleTitle);
             icon = (ImageView) itemView.findViewById(R.id.articleIcon);
+            distance = (TextView) itemView.findViewById(R.id.articleDistance);
         }
     }
 }

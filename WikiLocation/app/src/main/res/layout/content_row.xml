@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal" android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content" android:layout_marginTop="5dp">
 
     <ImageView
         android:id="@+id/articleIcon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:scaleType="fitXY"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:padding="8dp"
+        android:layout_gravity="center_vertical"
         android:src="@mipmap/ic_launcher"/>
     
     <TextView
         android:id="@+id/articleTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/articleIcon"
         android:padding="8dp"
+        android:textStyle="bold"
         android:text="Dummy Text"/>
-</LinearLayout>
+
+    <TextView
+        android:id="@+id/articleDistance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/articleTitle"
+        android:layout_toRightOf="@+id/articleIcon"
+        android:paddingLeft="8dp"
+        android:text="distance"/>
+
+</RelativeLayout>
