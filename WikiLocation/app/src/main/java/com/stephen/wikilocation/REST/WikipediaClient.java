@@ -14,6 +14,7 @@ public interface WikipediaClient {
            @Query("list") String geoSearch,
            @Query("gsradius") int radius,
            @Query("gscoord") String coordinates,
+           @Query("gslimit") int limit,
            @Query("format") String format
    );
 

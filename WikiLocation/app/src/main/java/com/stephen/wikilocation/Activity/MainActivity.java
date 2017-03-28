@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendApiRequest(String coordinates) {
 
-        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, "json");
+        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, 20, "json");
         call.enqueue(new Callback<Data>() {
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
