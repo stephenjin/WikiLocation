@@ -148,7 +148,8 @@ public class MainActivity extends AppCompatActivity {
                 List<Article> articles = reply.getQuery().getArticles();
 
                 //get thumbnails and add then to the articles
-                new ThumbnailTask().execute(articles);
+                //new ThumbnailTask().execute(articles);
+                requestThumbnail(articles);
                 Log.d(TAG, "onResponse: ");
             }
 
@@ -159,20 +160,42 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void requestThumbnail(Article article, final int i) {
-        String title = article.getTitle();
-        Call<Data> call = client.getThumbnailURL("query", "pageimages", "thumbnail", "json", 100, title);
+    private void requestThumbnail(final List<Article> articles) {
+        int size = articles.size();
+        String title = "";
 
-        try {
-            Data response = call.execute().body();
-            Map<String, Article> map = response.getQuery().getPageid();
-            //get first value from the map
-            Thumbnail thumbnail = map.entrySet().iterator().next().getValue().getThumbnail();
-            reply.getQuery().getArticles().get(i).setThumbnail(thumbnail);
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        //prepare title query
+        for(int i=0; i < size; i++){
+            if(i != size-1)
+                title += articles.get(i).getTitle() + "|";
+            else
+                title += articles.get(i).getTitle();
         }
+
+        Call<Data> call = client.getThumbnailURL("query", "pageimages", "thumbnail", "json", 100, size, title);
+
+          call.enqueue(new Callback<Data>() {
+              @Override
+              public void onResponse(Call<Data> call, Response<Data> response) {
+                  Data d = response.body();
+                  Map<String, Article> map = d.getQuery().getPageid();
+
+                  for(Article curr : articles){
+                      Thumbnail t = map.get(Integer.toString(curr.getPageid())).getThumbnail();
+                      curr.setThumbnail(t);
+                  }
+
+                  //specify adapter for RecyclerView
+                  adapter = new ArticleAdapter(reply.getQuery().getArticles());
+                  mRecyclerView.setAdapter(adapter);
+
+              }
+
+              @Override
+              public void onFailure(Call<Data> call, Throwable t) {
+
+              }
+          });
 
 
     }
@@ -218,28 +241,5 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-        class ThumbnailTask extends AsyncTask<List<Article>, Void, Void> {
-
-
-            @Override
-            protected Void doInBackground(List<Article>... params) {
-                List<Article> articles= params[0];
-
-                for (int i = 0; i < articles.size(); i++) {
-                    requestThumbnail(articles.get(i), i);
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
-
-                //specify adapter for RecyclerView
-                adapter = new ArticleAdapter(reply.getQuery().getArticles());
-                mRecyclerView.setAdapter(adapter);
-            }
-        }
 
 }

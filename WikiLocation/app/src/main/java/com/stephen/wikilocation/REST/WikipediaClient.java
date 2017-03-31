@@ -26,6 +26,7 @@ public interface WikipediaClient {
            @Query("piprop") String imageType,
            @Query("format") String format,
            @Query("pithumbsize") int thumbSize,
+           @Query("pilimit") int limit,
            @Query("titles") String title
    );
 
