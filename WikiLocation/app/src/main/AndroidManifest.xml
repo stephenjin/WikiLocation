@@ -22,6 +22,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service android:name=".Activity.GeofenceService" android:exported="true" android:enabled="true"/>
     </application>
 
 </manifest>

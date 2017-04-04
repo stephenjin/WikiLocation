@@ -1,10 +1,10 @@
 package com.stephen.wikilocation.Activity;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -25,6 +25,10 @@ import android.view.ViewGroup;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.stephen.wikilocation.Model.Article;
@@ -36,6 +40,7 @@ import com.stephen.wikilocation.REST.WikipediaClient;
 import com.stephen.wikilocation.View.ArticleAdapter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +52,11 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String GEOFENCE_ID = "MyGeofence";
     private static final String TAG = "MainActivity";
     GoogleApiClient googleApiClient = null;
+    List<Geofence> mGeofenceList = null;
+    PendingIntent pendingIntent;
     private WikipediaClient client;
     private Data reply = null;
     private ArticleAdapter adapter;
@@ -138,9 +146,10 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //make call to get nearby wikipedia articles
     private void sendApiRequest(String coordinates) {
 
-        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, 20, "json");
+        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, 50, "json");
         call.enqueue(new Callback<Data>() {
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
@@ -148,9 +157,10 @@ public class MainActivity extends AppCompatActivity {
                 List<Article> articles = reply.getQuery().getArticles();
 
                 //get thumbnails and add then to the articles
-                //new ThumbnailTask().execute(articles);
                 requestThumbnail(articles);
-                Log.d(TAG, "onResponse: ");
+
+                //add articles to geofence list and start monitoring
+                startGeofenceMonitoring(articles);
             }
 
             @Override
@@ -160,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    //get thumbnails for a list of articles
     private void requestThumbnail(final List<Article> articles) {
         int size = articles.size();
         String title = "";
@@ -238,6 +249,60 @@ public class MainActivity extends AppCompatActivity {
         }catch(SecurityException e){
             Log.d(TAG, "SecurityException: " + e.getMessage());
         }
+    }
+
+    private void startGeofenceMonitoring(List<Article> articles){
+
+        try {
+            mGeofenceList = new ArrayList<Geofence>();
+            //create a geofence for every item in the list
+            for (Article article : articles) {
+                Geofence geofence = new Geofence.Builder()
+                        .setRequestId(Integer.toString(article.getPageid()))
+                        .setCircularRegion(article.getLat(), article.getLon(), 100)
+                        .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                        .setNotificationResponsiveness(1000)
+                        .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+                        .build();
+
+                mGeofenceList.add(geofence);
+            }
+
+            GeofencingRequest geofenceRequest = new GeofencingRequest.Builder()
+                    .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                    .addGeofences(mGeofenceList).build();
+
+            Intent intent = new Intent(this, GeofenceService.class);
+            pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            if(googleApiClient.isConnected()){
+                LocationServices.GeofencingApi.addGeofences(googleApiClient, geofenceRequest, pendingIntent)
+                        .setResultCallback(new ResultCallback<Status>() {
+                            @Override
+                            public void onResult(@NonNull Status status) {
+                                if(status.isSuccess()){
+                                    Log.d(TAG, "Added Geofence");
+                                }
+                                else{
+                                    Log.d(TAG, "Failed to add geofence - "+status.getStatus());
+                                }
+                            }
+                        });
+            }
+        }catch (SecurityException e){
+                Log.d(TAG,"SecurityException -" + e.getMessage());
+        }
+
+    }
+
+    private void stopGeofenceMonitoring(){
+        LocationServices.GeofencingApi.removeGeofences(googleApiClient, pendingIntent)
+                .setResultCallback(new ResultCallback<Status>() {
+                    @Override
+                    public void onResult(@NonNull Status status) {
+                        Log.d(TAG, "Geofences stopped");
+                    }
+                });
     }
 
 
