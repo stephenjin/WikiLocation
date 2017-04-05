@@ -1,6 +1,7 @@
 package com.stephen.wikilocation.View;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,8 @@ import android.widget.TextView;
 
 import com.google.android.gms.vision.text.Text;
 import com.squareup.picasso.Picasso;
+import com.stephen.wikilocation.Activity.MainActivity;
+import com.stephen.wikilocation.Activity.WebViewActivity;
 import com.stephen.wikilocation.Model.Article;
 import com.stephen.wikilocation.Model.Thumbnail;
 import com.stephen.wikilocation.R;
@@ -21,18 +24,30 @@ import java.util.List;
  * Created by Stephen on 3/21/2017.
  */
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>{
-
+    private Context context;
+    private String baseURL = "https://en.wikipedia.org/wiki/";
     List<Article> articles = Collections.emptyList();
 
     public ArticleAdapter(List<Article> data){
         articles = data;
     }
 
+    private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            String url = baseURL + ((TextView)v.findViewById(R.id.articleTitle)).getText();
+            Intent intent = new Intent(context, WebViewActivity.class);
+            //pass url to be loaded to webview activity
+            intent.putExtra("url", url);
+            context.startActivity(intent);
+        }
+    };
+
     @Override
     public ArticleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.content_row, parent, false);
-
+        context = parent.getContext();
+        View view = LayoutInflater.from(context).inflate(R.layout.content_row, parent, false);
+        view.setOnClickListener(mOnClickListener);
         ArticleViewHolder holder = new ArticleViewHolder(view);
 
         return holder;

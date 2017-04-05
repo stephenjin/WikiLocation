@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -62,12 +63,15 @@ public class MainActivity extends AppCompatActivity {
     private ArticleAdapter adapter;
     private RecyclerView mRecyclerView;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        mRecyclerView = (RecyclerView) findViewById(R.id.article_recyclerView);
 
         //create the API client
         client = ServiceGenerator.createService(WikipediaClient.class);
@@ -96,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.article_recyclerView);
+
 
         //using a linear layout manager
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);

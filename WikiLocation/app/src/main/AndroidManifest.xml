@@ -23,6 +23,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".Activity.WebViewActivity"
+            android:label="WikiLocation">
+         </activity>
+
         <service android:name=".Activity.GeofenceService" android:exported="true" android:enabled="true"/>
     </application>
 
