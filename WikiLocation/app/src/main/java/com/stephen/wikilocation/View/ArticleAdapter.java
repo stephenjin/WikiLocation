@@ -25,7 +25,6 @@ import java.util.List;
  */
 public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleViewHolder>{
     private Context context;
-    private String baseURL = "https://en.wikipedia.org/wiki/";
     List<Article> articles = Collections.emptyList();
 
     public ArticleAdapter(List<Article> data){
@@ -35,7 +34,7 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ArticleV
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String url = baseURL + ((TextView)v.findViewById(R.id.articleTitle)).getText();
+            String url = context.getString(R.string.baseURL) + ((TextView)v.findViewById(R.id.articleTitle)).getText();
             Intent intent = new Intent(context, WebViewActivity.class);
             //pass url to be loaded to webview activity
             intent.putExtra("url", url);

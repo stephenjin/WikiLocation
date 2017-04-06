@@ -164,6 +164,10 @@ public class MainActivity extends AppCompatActivity {
                 requestThumbnail(articles);
 
                 //add articles to geofence list and start monitoring
+
+                stopGeofenceMonitoring();
+
+
                 startGeofenceMonitoring(articles);
             }
 
@@ -262,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
             //create a geofence for every item in the list
             for (Article article : articles) {
                 Geofence geofence = new Geofence.Builder()
-                        .setRequestId(Integer.toString(article.getPageid()))
+                        .setRequestId(article.getTitle())
                         .setCircularRegion(article.getLat(), article.getLon(), 100)
                         .setExpirationDuration(Geofence.NEVER_EXPIRE)
                         .setNotificationResponsiveness(1000)
@@ -271,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
 
                 mGeofenceList.add(geofence);
             }
-
+            //create request to trigger upon entering geofence radius
             GeofencingRequest geofenceRequest = new GeofencingRequest.Builder()
                     .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
                     .addGeofences(mGeofenceList).build();
@@ -300,7 +304,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void stopGeofenceMonitoring(){
-        LocationServices.GeofencingApi.removeGeofences(googleApiClient, pendingIntent)
+
+        List<String> ids = new ArrayList<String>();
+        for(Article article: reply.getQuery().getArticles()){
+            ids.add(article.getTitle());
+        }
+
+        LocationServices.GeofencingApi.removeGeofences(googleApiClient, ids)
                 .setResultCallback(new ResultCallback<Status>() {
                     @Override
                     public void onResult(@NonNull Status status) {
