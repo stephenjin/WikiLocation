@@ -1,0 +1,27 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sample="http://schemas.android.com/apk/res-auto">
+
+
+    <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
+         dismiss it. -->
+    <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
+    <SwitchPreference
+        android:title="Toggle Notifications"
+        android:key="@string/notification_toggle"
+        android:summary="Notifies you when you are close to an article location"
+        android:defaultValue="true" />
+
+    <com.pavelsikun.seekbarpreference.SeekBarPreference
+        android:key="@string/number_results"
+        android:title="Number of Results"
+        android:defaultValue="10"
+
+        sample:msbp_minValue="1"
+        sample:msbp_maxValue="50"
+        sample:msbp_interval="1"
+        sample:msbp_dialogEnabled="false"/>
+        />
+
+
+
+</PreferenceScreen>

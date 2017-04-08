@@ -3,5 +3,14 @@
     <string name="action_settings">Settings</string>
     <string name="refresh">Settings</string>
     <string name="baseURL">https://en.wikipedia.org/wiki/</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="notification_toggle">NotificationToggle</string>
+    <string name="number_results">NumResults</string>
+
+
 
 </resources>

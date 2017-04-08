@@ -3,25 +3,22 @@ package com.stephen.wikilocation.Activity;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.WebView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -45,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -53,7 +49,6 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String GEOFENCE_ID = "MyGeofence";
     private static final String TAG = "MainActivity";
     GoogleApiClient googleApiClient = null;
     List<Geofence> mGeofenceList = null;
@@ -62,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private Data reply = null;
     private ArticleAdapter adapter;
     private RecyclerView mRecyclerView;
-
+    SharedPreferences preferences;
 
 
     @Override
@@ -73,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         mRecyclerView = (RecyclerView) findViewById(R.id.article_recyclerView);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         //create the API client
         client = ServiceGenerator.createService(WikipediaClient.class);
 
@@ -144,16 +140,25 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
-
+        if (id == R.id.action_refresh) {
+            updateLocation();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
     //make call to get nearby wikipedia articles
     private void sendApiRequest(String coordinates) {
 
-        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, 50, "json");
+        if(reply != null)
+            stopGeofenceMonitoring(); //remove old geofences
+
+        int num = preferences.getInt("NumResults", 10);
+        Call<Data> call = client.getArticlesNearby("query", "geosearch", 10000, coordinates, num, "json");
         call.enqueue(new Callback<Data>() {
             @Override
             public void onResponse(Call<Data> call, Response<Data> response) {
@@ -163,12 +168,11 @@ public class MainActivity extends AppCompatActivity {
                 //get thumbnails and add then to the articles
                 requestThumbnail(articles);
 
-                //add articles to geofence list and start monitoring
+                    if(preferences.getBoolean("NotificationToggle", false)) {
+                        //add articles to geofence list and start monitoring
+                        startGeofenceMonitoring(articles);
+                    }
 
-                stopGeofenceMonitoring();
-
-
-                startGeofenceMonitoring(articles);
             }
 
             @Override
